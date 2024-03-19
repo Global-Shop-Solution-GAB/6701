@@ -1,0 +1,540 @@
+﻿Program.Sub.ScreenSU.Start
+Gui.f_Main..Create(BaseForm)
+Gui.f_Main..Caption("Frogs Shipping Dashboard (6701)")
+Gui.f_Main..Size(1024,720)
+Gui.f_Main..MinX(0)
+Gui.f_Main..MinY(0)
+Gui.f_Main..Position(0,0)
+Gui.f_Main..AlwaysOnTop(False)
+Gui.f_Main..FontName("Tahoma")
+Gui.f_Main..FontSize(8.25)
+Gui.f_Main..ControlBox(True)
+Gui.f_Main..MaxButton(True)
+Gui.f_Main..MinButton(True)
+Gui.f_Main..MousePointer(0)
+Gui.f_Main..Moveable(True)
+Gui.f_Main..Sizeable(True)
+Gui.f_Main..ShowInTaskBar(True)
+Gui.f_Main..TitleBar(True)
+Gui.f_Main..Event(UnLoad,f_Main_UnLoad)
+Gui.f_Main.GsGCData.Create(GsGridControl)
+Gui.f_Main.GsGCData.Enabled(True)
+Gui.f_Main.GsGCData.Visible(True)
+Gui.f_Main.GsGCData.Zorder(0)
+Gui.f_Main.GsGCData.Size(1024,601)
+Gui.f_Main.GsGCData.Position(0,89)
+Gui.f_Main.GsGCData.Dock(2)
+Gui.f_Main.GsGCData.Event(CellValueChanged,GsGCData_CellValueChanged)
+Gui.f_Main.GsGCData.Anchor(15)
+Gui.f_Main.cmdRefresh.Create(Button)
+Gui.f_Main.cmdRefresh.Enabled(True)
+Gui.f_Main.cmdRefresh.Visible(True)
+Gui.f_Main.cmdRefresh.Zorder(0)
+Gui.f_Main.cmdRefresh.Size(75,23)
+Gui.f_Main.cmdRefresh.Position(941,36)
+Gui.f_Main.cmdRefresh.Caption("REFRESH")
+Gui.f_Main.cmdRefresh.FontName("Tahoma")
+Gui.f_Main.cmdRefresh.FontSize(8.25)
+Gui.f_Main.cmdRefresh.Anchor(9)
+Gui.f_Main.cmdRefresh.Event(Click,cmdRefresh_Click)
+Gui.f_Main.cmdRefresh.TabStop(True)
+Gui.f_Main.cmdRefresh.TabIndex(3)
+Gui.f_Main.FrameDate.Create(Frame)
+Gui.f_Main.FrameDate.Enabled(True)
+Gui.f_Main.FrameDate.Visible(True)
+Gui.f_Main.FrameDate.Zorder(0)
+Gui.f_Main.FrameDate.Size(227,73)
+Gui.f_Main.FrameDate.Position(8,6)
+Gui.f_Main.FrameDate.Caption("Order Date Range")
+Gui.f_Main.FrameDate.FontName("Tahoma")
+Gui.f_Main.FrameDate.FontSize(8.25)
+Gui.f_Main.FrameDate.BorderStyle(3)
+Gui.f_Main.lblStart.Create(Label,"Start Date:",True,54,13,0,11,22,True,0,"Tahoma",8.25,,0,0)
+Gui.f_Main.lblStart.BorderStyle(0)
+Gui.f_Main.lblStart.Parent("FrameDate")
+Gui.f_Main.dtpStart.Create(DatePicker)
+Gui.f_Main.dtpStart.Enabled(True)
+Gui.f_Main.dtpStart.Visible(True)
+Gui.f_Main.dtpStart.Zorder(0)
+Gui.f_Main.dtpStart.Size(88,20)
+Gui.f_Main.dtpStart.Position(11,40)
+Gui.f_Main.dtpStart.CheckBox(False)
+Gui.f_Main.dtpStart.FontName("Tahoma")
+Gui.f_Main.dtpStart.FontSize(8.25)
+Gui.f_Main.dtpStart.Parent("FrameDate")
+Gui.f_Main.dtpStart.TabStop(True)
+Gui.f_Main.dtpStart.TabIndex(1)
+Gui.f_Main.lblEnd.Create(Label,"End Date:",True,48,13,0,117,22,True,0,"Tahoma",8.25,,0,0)
+Gui.f_Main.lblEnd.BorderStyle(0)
+Gui.f_Main.lblEnd.Parent("FrameDate")
+Gui.f_Main.dtpEnd.Create(DatePicker)
+Gui.f_Main.dtpEnd.Enabled(True)
+Gui.f_Main.dtpEnd.Visible(True)
+Gui.f_Main.dtpEnd.Zorder(0)
+Gui.f_Main.dtpEnd.Size(100,20)
+Gui.f_Main.dtpEnd.Position(117,40)
+Gui.f_Main.dtpEnd.CheckBox(False)
+Gui.f_Main.dtpEnd.FontName("Tahoma")
+Gui.f_Main.dtpEnd.FontSize(8.25)
+Gui.f_Main.dtpEnd.Parent("FrameDate")
+Gui.f_Main.dtpEnd.TabStop(True)
+Gui.f_Main.dtpEnd.TabIndex(2)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+V.Global.bError.Declare(Boolean)
+V.Global.bUnattended.Declare(Boolean)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.Try
+V.Local.dToday.Declare(Date)
+V.Local.dStart.Declare(Date)
+Function.Intrinsic.UI.UsePixels ' Allows you to use Pixels instead of Twips throughout
+
+'Open the connection to the DB
+F.ODBC.Connection!con.OpenConnection(V.Ambient.PDSN, V.Ambient.PUser, V.Ambient.PPass)
+
+'load the shell of the grid
+F.Intrinsic.Control.CallSub(BuildGrid)
+
+'set start date to year before
+F.Intrinsic.Date.DateAdd("YYYY", -1, V.Ambient.Date, V.Local.dStart)
+Gui.f_Main.dtpStart.Value(V.Local.dStart)
+
+'callsub to deserialize
+F.Intrinsic.Control.CallSub(Deserialize)
+
+'show the form
+Gui.f_Main..Show
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMessage, "ErrorNumber", V.Ambient.ErrorNumber, "ErrorDescription", V.Ambient.ErrorDescription, "Subroutine", V.Ambient.CurrentSubroutine, "UNATTENDED", V.Global.bUnattended, "Project", "6701", "ProjectTitle", "Frogs PL Shipping Dashboard", "Callback", "f_Main_UnLoad")
+F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.BuildGrid.Start
+F.Intrinsic.Control.Try
+
+'check to see if the datatable is open
+F.Intrinsic.Control.If(V.DataTable.dtOrders.Exists)
+	F.Data.DataTable.Close("dtOrders")
+F.Intrinsic.Control.EndIf
+
+'create empty datatable
+F.Data.DataTable.Create("dtOrders", True)
+'add columns
+F.Data.DataTable.AddColumn("dtOrders", "SEL", "BOOLEAN")
+F.Data.DataTable.AddColumn("dtOrders","ORDER_NO", "STRING")
+F.Data.DataTable.AddColumn("dtOrders", "ORDER_SUFFIX", "STRING")
+F.Data.DataTable.AddColumn("dtOrders", "CUST_PO", "STRING")
+F.Data.DataTable.AddColumn("dtOrders", "ORDER_SORT", "STRING")
+F.Data.DataTable.AddColumn("dtOrders", "ORDER_DUE_DATE", "DATE")
+F.Data.DataTable.AddColumn("dtOrders", "INVOICE_DATE", "DATE")
+F.Data.DataTable.AddColumn("dtOrders", "SHIPPED_DATE", "DATE")
+F.Data.DataTable.AddColumn("dtOrders", "SHIPPED", "STRING")
+F.Data.DataTable.AddColumn("dtOrders", "NOTES", "STRING")
+
+'callsub to formatgrid
+F.Intrinsic.Control.CallSub(FormatGrid)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMessage, "ErrorNumber", V.Ambient.ErrorNumber, "ErrorDescription", V.Ambient.ErrorDescription, "Subroutine", V.Ambient.CurrentSubroutine, "UNATTENDED", V.Global.bUnattended, "Project", "6701", "ProjectTitle", "Frogs PL Shipping Dashboard", "Callback", "f_Main_UnLoad")
+F.Intrinsic.Control.EndTry
+Program.Sub.BuildGrid.End
+
+Program.Sub.FormatGrid.Start
+F.Intrinsic.Control.Try
+V.Local.sDefault.Declare(String)
+V.Local.sGV.Declare(String)
+V.Local.sProperty.Declare(String)
+
+Gui.f_Main.GsGCData.AddGridviewFromDatatable("gvOrders", "dtOrders")
+V.Local.sGV.Set("gvOrders")
+
+Gui.f_Main.GsGCData.SetGridviewProperty(V.Local.sGV, "MultiSelect", False)
+Gui.f_Main.GsGCData.SetGridviewProperty(V.Local.sGV, "AllowFilter", True)
+Gui.f_Main.GsGCData.SetGridviewProperty(V.Local.sGV, "OptionsViewShowGroupPanel", False)
+Gui.f_Main.GsGCData.SetGridviewProperty(V.Local.sGV, "EnableAppearanceOddRow", False)
+Gui.f_Main.GsGCData.SetGridviewProperty(V.Local.sGV, "OptionsViewColumnAutoWidth", True)
+Gui.f_Main.GsGCData.SetGridviewProperty(V.Local.sGV, "AllowColumnResizing", True)
+Gui.f_Main.GsGCData.SetGridviewProperty(V.Local.sGV, "AllowColumnMoving", True)
+
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED", "Visible", False)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_SUFFIX", "Visible", False)
+
+V.Local.sProperty.Set("Caption")
+V.Local.sDefault.Set(" ")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SEL", V.Local.sProperty, " ")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_NO", V.Local.sProperty, "Order No")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_SUFFIX", V.Local.sProperty, "Order Suffix")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "CUST_PO", V.Local.sProperty, "Customer PO")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_SORT", V.Local.sProperty, "Order Sort")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_DUE_DATE", V.Local.sProperty, "Order Due Date")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "INVOICE_DATE", V.Local.sProperty, "Invoice Date")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED_DATE", V.Local.sProperty, "Shipped Date")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED", V.Local.sProperty, "Shipped Flag")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "Notes", V.Local.sProperty, "Notes")
+
+V.Local.sProperty.Set("AllowEdit")
+V.Local.sDefault.Set("False")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SEL", V.Local.sProperty, True)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_NO", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_SUFFIX", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "CUST_PO", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_SORT", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_DUE_DATE", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "INVOICE_DATE", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED_DATE", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "Notes", V.Local.sProperty, True)
+
+V.Local.sProperty.Set("ReadOnly")
+V.Local.sDefault.Set("True")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SEL", V.Local.sProperty, False)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_NO", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_SUFFIX", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "CUST_PO", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_SORT", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_DUE_DATE", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "INVOICE_DATE", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED_DATE", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "Notes", V.Local.sProperty, False)
+
+V.Local.sProperty.Set("HeaderFontBold")
+V.Local.sDefault.Set("True")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SEL", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_NO", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_SUFFIX", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "CUST_PO", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_SORT", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_DUE_DATE", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "INVOICE_DATE", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED_DATE", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "Notes", V.Local.sProperty, V.Local.sDefault)
+
+V.Local.sProperty.Set("HeaderHAlignment")
+V.Local.sDefault.Set("Center")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SEL", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_NO", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_SUFFIX", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "CUST_PO", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_SORT", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_DUE_DATE", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "INVOICE_DATE", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED_DATE", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED", V.Local.sProperty, V.Local.sDefault)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "Notes", V.Local.sProperty, V.Local.sDefault)
+
+V.Local.sProperty.Set("MinWidth")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SEL", V.Local.sProperty, 25)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_NO", V.Local.sProperty, 50)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_SUFFIX", V.Local.sProperty, 50)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "CUST_PO", V.Local.sProperty,75)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_SORT", V.Local.sProperty, 75)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_DUE_DATE", V.Local.sProperty, 75)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "INVOICE_DATE", V.Local.sProperty, 75)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED_DATE", V.Local.sProperty, 75)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED", V.Local.sProperty, 50)
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "Notes", V.Local.sProperty, 150)
+
+V.Local.sProperty.Set("MaxWidth")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SEL", V.Local.sProperty, 25)
+
+V.Local.sProperty.Set("DisplayCustomDatetime")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_DUE_DATE", V.Local.sProperty,  "d")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "INVOICE_DATE", V.Local.sProperty,  "d")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED_DATE", V.Local.sProperty,  "d")
+
+V.Local.sProperty.Set("CellHAlignment")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "ORDER_DUE_DATE", V.Local.sProperty,  "Center")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "INVOICE_DATE", V.Local.sProperty,  "Center")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "SHIPPED_DATE", V.Local.sProperty,  "Center")
+
+V.Local.sProperty.Set("CellBackColor")
+Gui.f_Main.GsGCData.SetColumnProperty(V.Local.sGV, "Notes", V.Local.sProperty, "#ffffe0")
+
+Gui.f_Main.GsGCData.MainView("gvOrders")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMessage, "ErrorNumber", V.Ambient.ErrorNumber, "ErrorDescription", V.Ambient.ErrorDescription, "Subroutine", V.Ambient.CurrentSubroutine, "UNATTENDED", V.Global.bUnattended, "Project", "6701", "ProjectTitle", "Frogs PL Shipping Dashboard", "Callback", "f_Main_UnLoad")
+F.Intrinsic.Control.EndTry
+Program.Sub.FormatGrid.End
+
+Program.Sub.cmdRefresh_Click.Start
+F.Intrinsic.Control.Try
+V.Local.dEnd.Declare(Date)
+V.Local.dStart.Declare(Date)
+V.Local.iCnt.Declare(Long)
+V.Local.sEnd.Declare(String)
+V.Local.sStart.Declare(String)
+V.Local.sIncludeShipped.Declare(String)
+V.Local.sSQL.Declare(String)
+V.Local.sShipped.Declare(String)
+
+F.Intrinsic.Control.CallSub(Serialize)
+
+'set the dates entered
+V.Local.dStart.Set(V.Screen.f_Main!dtpStart.Value)
+V.Local.dEnd.Set(V.Screen.f_Main!dtpEnd.Value)
+
+'format the dates
+F.Intrinsic.String.Format(V.Local.dStart, "YYYY-MM-DD", V.Local.sStart)
+F.Intrinsic.String.Format(V.Local.dEnd, "YYYY-MM-DD", V.Local.sEnd)
+
+F.Intrinsic.Control.BlockEvents
+F.Intrinsic.Control.If(V.DataTable.dtOrders.RowCount--,>,-1)
+	F.Data.DataTable.DeleteRow("dtOrders")
+	F.Data.DataTable.AcceptChanges("dtOrders")
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.UnBlockEvents
+
+'check to see if temp table is open
+F.Intrinsic.Control.If(V.DataTable.dtTemp.Exists)
+	F.Data.DataTable.Close("dtTemp")
+F.Intrinsic.Control.EndIf
+
+
+f.Intrinsic.String.Build("SELECT A.ORDER_NO, A.ORDER_SUFFIX, A.DATE_ORDER_DUE AS ORDER_DUE_DATE, A.DATE_INVOICE AS INVOICE_DATE, B.SHIPPED_DATE AS SHIPPED_DATE, A.CUSTOMER_PO AS CUST_PO, A.CODE_SORT AS ORDER_SORT, B.SHIPPED, B.NOTES FROM V_ORDER_HIST_HEAD A LEFT JOIN GCG_6701_SHIPPING  B ON A.ORDER_NO = B.ORDER_NO AND A.ORDER_SUFFIX = B.ORDER_SUFFIX WHERE A.CUSTOMER = 'REF001' AND A.DATE_ORDER >= '{0}' AND A.DATE_ORDER <= '{1}' ORDER BY A.ORDER_NO, A.ORDER_SUFFIX", V.Local.sStart.PSQLFriendly, V.Local.sEnd.PSQLFriendly, V.Local.sSQL)
+
+'f.Intrinsic.String.Build("SELECT A.ORDER_NO, A.ORDER_SUFFIX, A.DATE_ORDER AS ORDER_DATE, A.CUSTOMER_PO AS CUST_PO, A.CODE_SORT AS ORDER_SORT, B.SHIPPED FROM V_ORDER_HIST_HEAD A LEFT JOIN GCG_6701_SHIPPING  B ON A.ORDER_NO = B.ORDER_NO AND A.ORDER_SUFFIX = B.ORDER_SUFFIX WHERE A.DATE_ORDER >= '{0}' AND A.DATE_ORDER <= '{1}' ORDER BY A.ORDER_NO, A.ORDER_SUFFIX", V.Local.sStart.PSQLFriendly, V.Local.sEnd.PSQLFriendly, V.Local.sSQL)
+
+
+'create datatable
+F.Data.DataTable.CreateFromSQL("dtTemp", "con", V.Local.sSQL, True)
+'merge datatable
+F.Data.DataTable.Merge("dtTemp", "dtOrders", True,1)
+'close the temp datatable
+F.Data.DataTable.Close("dtTemp")
+
+'loop through the datatable and see if the SEL checkbox needs to be checked
+F.Intrinsic.Control.For(V.Local.iCnt,0,V.DataTable.dtOrders.RowCount--,1)
+	V.Local.sShipped.Set(V.DataTable.dtOrders(V.Local.iCnt).SHIPPED!FieldValTrim)
+	F.Intrinsic.Control.If(V.Local.sShipped.Trim,=,"Y")
+		F.Data.DataTable.SetValue("dtOrders",V.Local.iCnt, "SEL", True)
+	F.Intrinsic.Control.Else(V.Local.sShipped.Trim,=,"N", "OR", V.Local.sShipped.Trim,=,"")
+		F.Data.DataTable.SetValue("dtOrders",V.Local.iCnt, "SEL", False)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Next(V.Local.iCnt)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMessage, "ErrorNumber", V.Ambient.ErrorNumber, "ErrorDescription", V.Ambient.ErrorDescription, "Subroutine", V.Ambient.CurrentSubroutine, "UNATTENDED", V.Global.bUnattended, "Project", "6701", "ProjectTitle", "Frogs PL Shipping Dashboard", "Callback", "f_Main_UnLoad")
+F.Intrinsic.Control.EndTry
+Program.Sub.cmdRefresh_Click.End
+
+Program.Sub.GsGCData_CellValueChanged.Start
+F.Intrinsic.Control.Try
+V.Local.iRow.Declare(Long)
+V.Local.sOrderNo.Declare(String)
+V.Local.sOrderSuffix.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.sSQL.Declare(String)
+V.Local.sPrevSel.Declare(String)
+V.Local.sSelected.Declare(String)
+V.Local.sCustPO.Declare(String)
+V.Local.sOrderSort.Declare(String)
+V.Local.dOrderDate.Declare(Date)
+V.Local.sNotes.Declare(String)
+
+
+F.Intrinsic.Control.BlockEvents
+
+'check to see if the user changed the value on the SEL column
+F.Intrinsic.Control.If(V.Args.Column,=,"SEL")
+	V.Local.iRow.Set(V.Args.RowIndex)
+	
+	'get corresponding information to update or insert record into custom table
+	Gui.f_Main.GsGCData.GetCellValueByColumnName("gvOrders", "SEL", V.Local.iRow, V.Local.sPrevSel)
+	Gui.f_Main.GsGCData.GetCellValueByColumnName("gvOrders", "ORDER_NO", V.Local.iRow, V.Local.sOrderNo)
+	Gui.f_Main.GsGCData.GetCellValueByColumnName("gvOrders", "ORDER_SUFFIX", V.Local.iRow, V.Local.sOrderSuffix)
+	Gui.f_Main.GsGCData.GetCellValueByColumnName("gvOrders", "CUST_PO", V.Local.iRow, V.Local.sCustPO)
+	Gui.f_Main.GsGCData.GetCellValueByColumnName("gvOrders", "ORDER_SORT", V.Local.iRow, V.Local.sOrderSort)
+	Gui.f_Main.GsGCData.GetCellValueByColumnName("gvOrders", "ORDER_DUE_DATE", V.Local.iRow, V.Local.dOrderDate)
+	
+	F.Intrinsic.Control.If(V.Local.sPrevSel.Long,=,0)
+		V.Local.sSelected.Set(1)
+	F.Intrinsic.Control.ElseIf(V.Local.sPrevSel.Long,=,1)
+		V.Local.sSelected.Set(0)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.If(V.Local.sSelected.Long,=,1)
+			F.Data.DataTable.SetValue("dtOrders", V.Local.iRow, "SEL", True)
+		'query custom table to see if a record exists
+		F.Intrinsic.String.Build("SELECT * FROM GCG_6701_SHIPPING WHERE ORDER_NO = '{0}' AND ORDER_SUFFIX = '{1}'", V.Local.sOrderNo.Trim, V.Local.sOrderSuffix.Trim, V.Local.sSQL)
+		F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSQL, V.Local.sRet)
+		'if there is a record, update it. If not, delete it
+		F.Intrinsic.Control.If(V.Local.sRet.Trim,<>,"")
+			F.Intrinsic.String.Build("UPDATE GCG_6701_SHIPPING SET SHIPPED = 'Y', SHIPPED_DATE = '{2}' WHERE ORDER_NO = '{0}' AND ORDER_SUFFIX = '{1}'", V.Local.sOrderNo.Trim, V.Local.sOrderSuffix.Trim, v.Ambient.Date.PervasiveDate, V.Local.sSQL)
+			F.ODBC.Connection!con.Execute(V.Local.sSQL)
+		F.Intrinsic.Control.ElseIf(V.Local.sRet.Trim,=,"")
+			F.Intrinsic.String.Build("INSERT INTO GCG_6701_SHIPPING (ORDER_NO, ORDER_SUFFIX, CUST_PO, ORDER_SORT, ORDER_DATE, SHIPPED, SHIPPED_DATE) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', 'Y', '{5}')", v.Local.sOrderNo.Trim, V.Local.sOrderSuffix.Trim, V.Local.sCustPO.Trim,V.Local.sOrderSort.Trim, V.Local.dOrderDate.PervasiveDate, V.Ambient.Date.PervasiveDate, V.Local.sSQL)
+			F.ODBC.Connection!con.Execute(V.Local.sSQL)
+		F.Intrinsic.Control.EndIf
+		
+	F.Intrinsic.Control.ElseIf(V.Local.sSelected.Long,=,0)
+		F.Data.DataTable.SetValue("dtOrders", V.Local.iRow, "SEL", False)
+		'query custom table to see if a record exists
+		F.Intrinsic.String.Build("SELECT * FROM GCG_6701_SHIPPING WHERE ORDER_NO = '{0}' AND ORDER_SUFFIX = '{1}'", V.Local.sOrderNo.Trim, V.Local.sOrderSuffix.Trim, V.Local.sSQL)
+		F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSQL, V.Local.sRet)
+		'if there is a record, update it. If not, delete it
+		F.Intrinsic.Control.If(V.Local.sRet.Trim,<>,"")
+			F.Intrinsic.String.Build("UPDATE GCG_6701_SHIPPING SET SHIPPED = 'N', SHIPPED_DATE = '1900-01-01' WHERE ORDER_NO = '{0}' AND ORDER_SUFFIX = '{1}'", V.Local.sOrderNo.Trim, V.Local.sOrderSuffix.Trim, V.Local.sSQL)
+			F.ODBC.Connection!con.Execute(V.Local.sSQL)
+		F.Intrinsic.Control.ElseIf(V.Local.sRet.Trim,=,"")
+			F.Intrinsic.String.Build("INSERT INTO GCG_6701_SHIPPING (ORDER_NO, ORDER_SUFFIX, CUST_PO, ORDER_SORT, ORDER_DATE, SHIPPED) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', 'N')", v.Local.sOrderNo.Trim, V.Local.sOrderSuffix.Trim, V.Local.sCustPO.Trim,V.Local.sOrderSort.Trim, V.Local.dOrderDate.PervasiveDate, V.Local.sSQL)
+			F.ODBC.Connection!con.Execute(V.Local.sSQL)
+		F.Intrinsic.Control.EndIf
+		
+	F.Intrinsic.Control.EndIf
+	F.Data.DataTable.AcceptChanges("dtOrders")
+F.Intrinsic.Control.ElseIf(V.Args.Column,=,"NOTES")	
+	V.Local.iRow.Set(V.Args.RowIndex)
+	
+	'get corresponding information to update or insert record into custom table
+	Gui.f_Main.GsGCData.GetCellValueByColumnName("gvOrders", "ORDER_NO", V.Local.iRow, V.Local.sOrderNo)
+	Gui.f_Main.GsGCData.GetCellValueByColumnName("gvOrders", "ORDER_SUFFIX", V.Local.iRow, V.Local.sOrderSuffix)
+	Gui.f_Main.GsGCData.GetCellValueByColumnName("gvOrders", "CUST_PO", V.Local.iRow, V.Local.sCustPO)
+	Gui.f_Main.GsGCData.GetCellValueByColumnName("gvOrders", "ORDER_SORT", V.Local.iRow, V.Local.sOrderSort)
+	Gui.f_Main.GsGCData.GetCellValueByColumnName("gvOrders", "ORDER_DUE_DATE", V.Local.iRow, V.Local.dOrderDate)
+	Gui.f_Main.GsGCData.GetCellValueByColumnName("gvOrders", "NOTES", V.Local.iRow, V.Local.sNotes)
+	
+'	query custom table to see if a record exists
+	F.Intrinsic.String.Build("SELECT * FROM GCG_6701_SHIPPING WHERE ORDER_NO = '{0}' AND ORDER_SUFFIX = '{1}'", V.Local.sOrderNo.Trim, V.Local.sOrderSuffix.Trim, V.Local.sSQL)
+	F.ODBC.Connection!con.ExecuteAndReturn(V.Local.sSQL, V.Local.sRet)
+	'if there is a record, update it. If not, delete it
+	F.Intrinsic.Control.If(V.Local.sRet.Trim,<>,"")
+		F.Intrinsic.String.Build("UPDATE GCG_6701_SHIPPING SET NOTES = '{2}' WHERE ORDER_NO = '{0}' AND ORDER_SUFFIX = '{1}'", V.Local.sOrderNo.Trim, V.Local.sOrderSuffix.Trim, v.Local.sNotes.Trim, V.Local.sSQL)
+		F.ODBC.Connection!con.Execute(V.Local.sSQL)
+	F.Intrinsic.Control.ElseIf(V.Local.sRet.Trim,=,"")
+		F.Intrinsic.String.Build("INSERT INTO GCG_6701_SHIPPING (ORDER_NO, ORDER_SUFFIX, CUST_PO, ORDER_SORT, ORDER_DATE, SHIPPED, NOTES) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', 'N', '{5}')", v.Local.sOrderNo.Trim, V.Local.sOrderSuffix.Trim, V.Local.sCustPO.Trim,V.Local.sOrderSort.Trim, V.Local.dOrderDate.PervasiveDate, V.Local.sNotes.Trim, V.Local.sSQL)
+		F.ODBC.Connection!con.Execute(V.Local.sSQL)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.UnBlockEvents
+F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMessage, "ErrorNumber", V.Ambient.ErrorNumber, "ErrorDescription", V.Ambient.ErrorDescription, "Subroutine", V.Ambient.CurrentSubroutine, "UNATTENDED", V.Global.bUnattended, "Project", "6701", "ProjectTitle", "Frogs PL Shipping Dashboard", "Callback", "f_Main_UnLoad")
+F.Intrinsic.Control.EndTry
+Program.Sub.GsGCData_CellValueChanged.End
+
+Program.Sub.Serialize.Start
+F.Intrinsic.Control.Try
+V.Local.sSerialize.Declare(String)
+
+
+Gui.f_Main.GsGCData.Serialize("gvOrders", V.Local.sSerialize)
+F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"gvOrders",6701,1000,False,"Serialize",False,0,-999.0,1/1/1980,12:00:00 AM,V.Local.sSerialize)
+
+
+F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMessage, "ErrorNumber", V.Ambient.ErrorNumber, "ErrorDescription", V.Ambient.ErrorDescription, "Subroutine", V.Ambient.CurrentSubroutine, "UNATTENDED", V.Global.bUnattended, "Project", "6701", "ProjectTitle", "Frogs PL Shipping Dashboard", "Callback", "f_Main_UnLoad")
+F.Intrinsic.Control.EndTry
+Program.Sub.Serialize.End
+
+Program.Sub.Deserialize.Start
+F.Intrinsic.Control.Try
+V.Local.sSerialize.Declare(String)
+
+F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"gvOrders",6701,0,5,"",V.Local.sSerialize)
+F.Intrinsic.Control.If(V.Local.sSerialize,<>,"")
+	F.ODBC.Connection!common.OpenConnection(V.Ambient.Ccon,V.Ambient.Cuser,V.Ambient.Cpass)
+	F.ODBC.Connection!common.Execute("Delete From Gs_Registry Where Reg_ID = 6701 And Seq < 1000;")
+	F.ODBC.Connection!common.Close
+F.Intrinsic.Control.EndIf
+
+F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode, "gvOrders",6701,1000,6,"",V.Local.sSerialize)
+F.Intrinsic.Control.If(V.Local.sSerialize.Trim,<>,"")
+	Gui.f_Main.GsGCData.Deserialize(V.Local.sSerialize)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMessage, "ErrorNumber", V.Ambient.ErrorNumber, "ErrorDescription", V.Ambient.ErrorDescription, "Subroutine", V.Ambient.CurrentSubroutine, "UNATTENDED", V.Global.bUnattended, "Project", "6701", "ProjectTitle", "Frogs PL Shipping Dashboard", "Callback", "f_Main_UnLoad")
+F.Intrinsic.Control.EndTry
+Program.Sub.Deserialize.End
+
+Program.Sub.f_Main_UnLoad.Start
+F.Intrinsic.Control.Try
+
+F.Intrinsic.Control.CallSub(Serialize)
+
+'close the connection
+F.ODBC.Connection!con.Close
+
+'end the program
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.Control.CallSub(ErrorMessage, "ErrorNumber", V.Ambient.ErrorNumber, "ErrorDescription", V.Ambient.ErrorDescription, "Subroutine", V.Ambient.CurrentSubroutine, "UNATTENDED", V.Global.bUnattended, "Project", "6701", "ProjectTitle", "Frogs PL Shipping Dashboard", "Callback", "f_Main_UnLoad")
+F.Intrinsic.Control.EndTry
+Program.Sub.f_Main_UnLoad.End
+
+Program.Sub.ErrorMessage.Start
+'basic error message for replacing catch block
+'this is really just for when printing the message and ending program
+'pass error number, error description, current subroutine
+'optional callback sub, this will be called before ending
+'optional unattended parameters, those subs may not exist if not using them but won't be called
+F.Intrinsic.Control.Try
+
+V.Local.iError.Declare(Long)
+V.Local.sErrorDescription.Declare(String)
+V.Local.sSubroutine.Declare(String)
+V.Local.sError.Declare(String)
+V.Local.bExists.Declare(Boolean)
+V.Local.sCallback.Declare(String)
+
+V.Local.iError.Set(V.Args.ErrorNumber)
+V.Local.sErrorDescription.Set(V.Args.ErrorDescription)
+V.Local.sSubroutine.Set(V.Args.Subroutine)
+
+'make sure we aren't in an error loop
+F.Intrinsic.Control.If(V.Global.bError)
+	F.Intrinsic.Control.End
+
+F.Intrinsic.Control.EndIf
+V.Global.bError.Set(True)
+
+F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}", V.Caller.ScriptFile, V.Ambient.Newline, V.Local.sSubroutine, V.Local.iError, V.Local.sErrorDescription, V.Ambient.GABVersion, V.Local.sError)
+
+F.Intrinsic.Variable.ArgExists("UNATTENDED", V.Local.bExists)
+F.Intrinsic.Control.If(V.Local.bExists)
+	F.Intrinsic.Control.If(V.Args.UNATTENDED)
+		F.Intrinsic.Control.CallSub(UnattendedErrorMessage, "MESSAGE", V.Local.sError, "PROJECT", V.Args.PROJECT, "PROJECTTITLE", V.Args.PROJECTTITLE)
+	F.Intrinsic.Control.Else
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Else
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Variable.ArgExists("Callback", V.Local.bExists)
+F.Intrinsic.Control.If(V.Local.bExists)
+	V.Local.sCallback.Set(V.Args.Callback.Trim)
+	F.Intrinsic.Control.CallSub(V.Local.sCallback)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.Catch
+	F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Caller.ScriptFile,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+
+F.Intrinsic.Control.EndTry
+Program.Sub.ErrorMessage.End
+
+Program.Sub.Comments.Start
+${$5$}$3.0.0.0$}$1
+${$6$}$acollins$}$20220426092417277$}$h98hERc2yV72q0GaUGlwSaoK/aefTdVk/XotSp2jZHh1zz0F9PLHE1T3Xl6STxj56h8IE7y1NrGh2NS5QuKWnw==
+Program.Sub.Comments.End
